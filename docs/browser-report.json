@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "checks": 25,
+  "mode": "isolated-renderer-mocked-fetch-and-location",
+  "passed": [
+    "Default query renders results",
+    "Fixture warning is visible",
+    "Tiles disabled for browser test",
+    "No desktop document overflow",
+    "JSON contains query and honest fixture provenance",
+    "JSON counts match actual records",
+    "CSV contains every result and credits",
+    "Table filter does not silently truncate exports",
+    "GeoJSON coordinates use longitude then latitude",
+    "Unique PLZ CSV supports semicolon and deduplication",
+    "France can be explicitly included",
+    "Postal-point rule respects radius",
+    "German text shortcut sets radius",
+    "Shared URL carries query state",
+    "Leading-zero PLZ preserved as JSON string",
+    "Leading-zero PLZ preserved in CSV text",
+    "Source/method dialog is usable",
+    "Method dialog closes with Escape",
+    "Map pick applies a new geographic center",
+    "Map inverse projection stays near selected city",
+    "Malformed shared coordinate is rejected",
+    "No mobile document overflow",
+    "Mobile query controls work",
+    "No uncaught browser JavaScript errors",
+    "No external network requests during automated testing"
+  ],
+  "scope": "Illustrative preview fixture only; tiles off. No live GeoNames import or Vercel deployment was tested."
+}

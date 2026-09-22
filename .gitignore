@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env*
+!.env.example
+.vercel/
+*.tmp
+.cache/
+test-results/

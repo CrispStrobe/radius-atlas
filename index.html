@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Explore postal localities within a radius. Map your selection and export attributed CSV, JSON and GeoJSON results.">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="theme-color" content="#f7f7f2">
+  <title>Radius Atlas — Find places. Export possibilities.</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./src/styles.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#results">Skip to results</a>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Radius Atlas home"><span class="brand-mark" aria-hidden="true">◎</span><span>radius<span class="brand-light">atlas</span><small>POSTAL GEOGRAPHY WORKSPACE</small></span></a>
+    <div class="top-actions"><span class="status-pill"><span class="dot"></span> Browser-side queries</span><button id="about-button" class="text-button">Data &amp; method <span aria-hidden="true">↗</span></button></div>
+  </header>
+  <main class="workspace">
+    <aside class="sidebar" aria-label="Query builder">
+      <div class="eyebrow">01 / DEFINE YOUR SEARCH</div>
+      <h1>What’s<br> within reach?</h1>
+      <p class="intro">Choose a place. Set a distance.<br>Turn your area into a usable list.</p>
+      <form id="query-form">
+        <label for="place-search" class="field-label">Starting place or postal code</label>
+        <div class="search-box"><span aria-hidden="true">⌕</span><input id="place-search" type="search" value="Kehl" placeholder="Search Kehl, Berlin, 77694…" autocomplete="off" aria-controls="suggestions" aria-expanded="false" aria-autocomplete="list" role="combobox"></div>
+        <div id="suggestions" class="suggestions" role="listbox" hidden></div>
+        <div class="center-meta" id="center-meta">Loading the location index…</div>
+        <div class="radius-heading"><label for="radius" class="field-label">Search radius</label><div class="radius-number"><input id="radius" type="number" min="0" max="500" step="0.1" value="30" aria-label="Radius in kilometres"><span>km</span></div></div>
+        <input id="radius-slider" type="range" min="0" max="150" step="1" value="30" aria-label="Radius slider, 0 to 150 km">
+        <div class="range-captions"><span>0 km</span><span>150 km · type up to 500</span></div>
+        <fieldset class="countries"><legend class="field-label">Include results from</legend><label><input type="checkbox" name="country" value="DE" checked> <span class="country-flag">DE</span> Germany</label><label><input type="checkbox" name="country" value="FR"> <span class="country-flag">FR</span> France</label></fieldset>
+        <label for="mode" class="field-label">Selection rule</label>
+        <select id="mode"><option value="places">Places → all their known PLZ</option><option value="postal-points">Postal points → only inside radius</option></select>
+        <p class="field-help" id="rule-help">Select each postal locality by its derived reference point, then include every postal record assigned to that locality.</p>
+        <button id="run-query" class="primary" type="submit" disabled>Explore this radius <span aria-hidden="true">→</span></button>
+      </form>
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+      <div class="sidebar-divider"></div>
+      <details class="query-shortcut"><summary>Or write a simple query <span>↗</span></summary><label class="sr-only" for="text-query">Simple English or German radius query</label><textarea id="text-query" rows="3" placeholder="Alle PLZ im Umkreis von 30 km um Kehl"></textarea><button id="parse-query" class="secondary">Use this query</button><p class="field-help">English or German radius shortcuts. Uses the countries and rule above; not a general AI search.</p></details>
+      <div class="method-note"><span class="note-icon">i</span><p><strong>Distance, not driving time.</strong><br>All distances are approximate straight-line measurements. Postal localities are not verified political municipalities.</p></div>
+      <div class="dataset-card"><span class="eyebrow">DATA SNAPSHOT</span><strong id="dataset-title">Loading…</strong><span id="dataset-meta"></span><button id="data-button" class="text-button">Source, coverage &amp; license ↗</button></div>
+    </aside>
+    <section class="main-pane" aria-label="Map and results">
+      <div class="pane-heading"><div><div class="eyebrow">02 / EXPLORE THE AREA</div><h2 id="map-title">Around Kehl</h2></div><button id="share" class="secondary" disabled>Copy query link <span aria-hidden="true">↗</span></button></div>
+      <div id="coverage-warning" class="coverage-warning" hidden></div>
+      <div class="map-wrap">
+        <canvas id="map" tabindex="0" aria-label="Interactive radius map. Drag to pan; use plus and minus to zoom, arrow keys to pan. Results are also available in the table below."></canvas>
+        <div class="map-info"><span class="dot"></span><span id="map-info">Preparing your search</span></div>
+        <div class="map-controls"><button id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button><button id="zoom-out" title="Zoom out" aria-label="Zoom out">−</button><button id="fit-map" title="Fit query area" aria-label="Fit query area">⤢</button></div>
+        <button id="pick-center" class="pick-center" aria-pressed="false">⊕ Set center on map</button>
+        <div id="map-popup" class="map-popup" hidden><button id="close-popup" aria-label="Close place details">×</button><strong id="popup-name"></strong><p id="popup-codes"></p><small id="popup-distance"></small></div>
+        <div class="map-legend"><span><i class="legend-dot de"></i>Germany</span><span><i class="legend-dot fr"></i>France</span><span><i class="legend-dot origin"></i>Origin</span></div>
+        <div class="map-attribution"><a id="tile-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+      </div>
+      <div class="map-caption"><span id="basemap-status">Basemap loads directly from OpenStreetMap</span><label><input id="tiles-toggle" type="checkbox" checked> Street basemap</label></div>
+      <div class="metrics" aria-live="polite"><div><span class="metric-label">POSTAL LOCALITIES</span><strong id="metric-places">—</strong></div><div><span class="metric-label">UNIQUE PLZ</span><strong id="metric-codes">—</strong></div><div><span class="metric-label">POSTAL RECORDS</span><strong id="metric-records">—</strong></div><div><span class="metric-label">RADIUS · AIR DISTANCE</span><strong><span id="metric-radius">30</span><small> km</small></strong></div></div>
+      <section class="results" id="results" tabindex="-1">
+        <div class="results-heading"><div><div class="eyebrow">03 / TAKE THE RESULTS WITH YOU</div><h2>From map to dataset.</h2></div><div class="export-actions"><button data-export="csv" class="secondary" disabled>↓ CSV</button><button data-export="json" class="secondary" disabled>↓ JSON</button><button data-export="geojson" class="secondary" disabled>↓ GeoJSON</button></div></div>
+        <div class="result-tools"><label class="filter-wrap"><span class="sr-only">Filter displayed results</span><input id="result-filter" type="search" placeholder="Filter this table by place or PLZ…"></label><label class="csv-setting">CSV delimiter <select id="csv-delimiter"><option value=",">Comma</option><option value=";">Semicolon</option></select></label><button data-export="codes" class="text-button" disabled>PLZ-only CSV ↗</button></div>
+        <div class="table-wrap"><table><thead><tr><th scope="col">Place / locality</th><th scope="col">PLZ</th><th scope="col">Country</th><th scope="col" class="align-right">Distance ↗</th><th scope="col" class="coordinate-column">Postal coordinate</th></tr></thead><tbody id="result-rows"><tr><td colspan="5">Loading postal data…</td></tr></tbody></table></div>
+        <div class="table-footer"><span id="table-count">—</span><div><button id="previous-page" class="text-button" disabled>← Previous</button><span id="page-count"></span><button id="next-page" class="text-button" disabled>Next →</button></div></div>
+        <p class="export-note">Exports contain <strong>all query matches</strong>, not just the visible page or table filter. Source credits and query details travel with the data. In spreadsheet applications, import the PLZ column as text to preserve leading zeros.</p>
+      </section>
+      <footer class="footer"><span>Built for exploration. Designed for reuse.</span><span id="source-credit">Data credits appear after loading.</span></footer>
+    </section>
+  </main>
+  <dialog id="about">
+    <div class="dialog-heading"><span class="eyebrow">TRANSPARENT BY DESIGN</span><button id="close-about" class="text-button" aria-label="Close data and method dialog">Close ×</button></div>
+    <h2>Radius Atlas</h2>
+    <p>Postal geography workspace for reproducible radius queries and structured exports.</p>
+    <dl class="build-details">
+      <dt>Version</dt><dd id="build-version">Loading…</dd>
+      <dt>Commit</dt><dd><a id="build-commit" target="_blank" rel="noopener">Loading…</a></dd>
+      <dt>Branch / tag</dt><dd id="build-ref">Loading…</dd>
+      <dt>Built</dt><dd id="build-time">Loading…</dd>
+      <dt>Source</dt><dd><a href="https://github.com/CrispStrobe/radius-atlas" target="_blank" rel="noopener">GitHub repository</a></dd>
+    </dl>
+    <h3>Service provider</h3>
+    <address><strong>Christian Ströbele</strong><br>Nikolausstr. 5<br>70190 Stuttgart<br>Deutschland / Germany</address>
+    <h3>Contact</h3>
+    <p><a href="mailto:postmaster@crispstro.be">postmaster@crispstro.be</a><br><a href="tel:+4917664218601">+49 176 6421 8601</a></p>
+    <h3>Selection, not administrative boundaries</h3>
+    <p>This version works with postal localities. Places are grouped by country, administrative fields and exact locality name. Their reference point is a spherical mean of distinct postal coordinates. It is neither an official town center nor a municipal centroid.</p>
+    <p>“Places → all their known PLZ” selects those reference points and then returns the selected localities’ full known postal records. Some returned postal coordinates can therefore lie outside the circle. “Postal points” filters each postal coordinate directly.</p>
+    <h3>Data and provenance</h3>
+    <pre id="metadata"></pre>
+    <p><a href="./data/dataset.json" download>Download this data snapshot</a> · <a href="./data/geonames-readme.txt" target="_blank" rel="noopener">Archived source notice</a> · <a href="./docs/method.md" target="_blank" rel="noopener">Method notes</a></p>
+    <h3>Privacy</h3>
+    <p>Radius Atlas has no account, cookies, analytics, advertising or tracking. Queries and exports run in your browser and are not sent to a geocoder or AI service. The GitHub Pages host may retain ordinary request metadata such as IP address and timestamps.</p>
+    <p>When the street basemap is enabled, your browser requests visible map tiles directly from the configured provider. That provider receives normal connection data and the requested tile area. Turn off “Street basemap” to stop new tile requests.</p>
+    <h3>Disclaimer</h3>
+    <p>This software and its results are provided “as is”, without warranty of any kind, express or implied, including accuracy, completeness, timeliness, merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors be liable for claims, damages or other liability arising from the software, data, results or their use.</p>
+    <p>Do not treat postal points as delivery-area boundaries, official municipal centres or authoritative proof that an address lies inside a jurisdiction. Verify consequential decisions against an appropriate official source.</p>
+    <h3>Licences</h3>
+    <p>Original application code, tests and tooling are available under the MIT License. Original documentation and illustrative fixtures are CC BY 4.0. Imported GeoNames postal data remains CC BY 4.0 under its upstream notice; conversion, validation, deduplication, locality reference points and distances are modifications made by Radius Atlas.</p>
+    <p><a href="./LICENSE" target="_blank" rel="noopener">MIT License</a> · <a href="./LICENSE-DATA.md" target="_blank" rel="noopener">Data and documentation licences</a> · <a href="./THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener">Third-party notices</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p>
+    <h3>Third-party services and data</h3>
+    <table class="legal-table"><thead><tr><th>Component</th><th>Terms</th></tr></thead><tbody><tr><td><a href="https://www.geonames.org/" target="_blank" rel="noopener">GeoNames postal data</a></td><td>CC BY 4.0; upstream notice retained</td></tr><tr><td><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap basemap</a></td><td>External optional service; ODbL attribution and <a href="https://operations.osmfoundation.org/policies/tiles/" target="_blank" rel="noopener">tile policy</a></td></tr></tbody></table>
+    <h3>Not affiliated</h3>
+    <p>Radius Atlas is not affiliated with, endorsed by or operated by GeoNames, the OpenStreetMap Foundation, OpenStreetMap contributors, GitHub or Vercel. Names and trademarks belong to their respective owners.</p>
+    <h3>Need municipalities?</h3>
+    <p>Use official municipal identifiers, an explicit municipal reference point or boundary layer, and a municipality-to-PLZ crosswalk. This app does not infer an AGS from a GeoNames administrative field.</p>
+  </dialog>
+  <noscript><p class="notice">This application requires JavaScript for local spatial queries. The dataset is available at <a href="./data/dataset.json">data/dataset.json</a>.</p></noscript>
+</body>
+</html>

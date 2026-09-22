@@ -1,0 +1,8 @@
+{
+  "tileUrl": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "tileAttribution": "© OpenStreetMap contributors",
+  "tileAttributionUrl": "https://www.openstreetmap.org/copyright",
+  "tilesEnabled": true,
+  "contactUrl": "",
+  "note": "Use a suitable tile provider for public production traffic. Only visible tiles are requested; there is no prefetch/offline tile archive. This configuration is public: do not put secrets here."
+}
