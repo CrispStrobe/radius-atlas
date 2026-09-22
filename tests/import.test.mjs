@@ -27,6 +27,11 @@ test('missing coordinates do not become zero; duplicates and malformed rows repo
  const input=line+'\n'+line+'\n'+line.replace('\t51.05\t','\t\t')+'\n'+'bad';
  const parsed=parseGeoNames(input,'DE');assert.equal(parsed.records.length,1);assert.equal(parsed.duplicates,1);assert.equal(parsed.rejected,2);
 });
+test('unsupported CEDEX routing labels are tracked separately from malformed rows',()=>{
+ const cedex=line.replace('DE\t01067','FR\t75001 CEDEX');
+ const parsed=parseGeoNames(cedex,'FR');assert.equal(parsed.records.length,0);
+ assert.equal(parsed.excludedUnsupported,1);assert.equal(parsed.rejected,0);
+});
 test('country-file dataset retains source, modification and retrieval metadata',()=>{
  const dataset=makeDataset([parseGeoNames(line,'DE')],{retrievedAt:'2026-09-22T00:00:00Z',archives:[]});
  assert.equal(dataset.meta.license,'CC-BY-4.0');assert.equal(dataset.meta.coverage,'country-files');assert.ok(dataset.meta.changes);assert.equal(dataset.records.length,1);

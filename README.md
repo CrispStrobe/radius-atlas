@@ -47,6 +47,11 @@ The importer retries transient downloads. It **fails loudly**, without silently
 switching to the fixture, if downloads, ZIP integrity, expected minimum record
 counts, or data-quality thresholds fail.
 
+The current schema accepts ordinary five-digit German and French postcodes.
+GeoNames rows labelled as CEDEX or other non-five-digit routing codes are counted
+as intentionally unsupported and excluded; malformed coordinates and rows are
+reported separately as rejected records.
+
 For a Germany-only import on macOS/Linux:
 
 ```sh
