@@ -150,9 +150,14 @@ been created by this archive. Change the repository name or visibility as needed
   result table; unambiguous country-scoped postcode deduplication.
 - CSV, JSON, GeoJSON and unique-PLZ CSV exports, with source credits and coverage
   information. Full CSV and JSON include query context and provenance.
-- A small English/German convenience parser, for example
+- A small English/German/French convenience parser, for example
   `all PLZ within 30 km of Kehl` or
-  `alle PLZ im Umkreis von 30 km um Kehl`. This is not general natural-language AI.
+  `alle PLZ im Umkreis von 30 km um Kehl` or
+  `tous les codes postaux dans un rayon de 30 km autour de Kehl`. This is not
+  general natural-language AI.
+- English, German and French interface localization selected from the header,
+  persisted locally and included in shareable query URLs. The convenience parser
+  also accepts equivalent French radius wording.
 
 ## What “within 30 km” means
 

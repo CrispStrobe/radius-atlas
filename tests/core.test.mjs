@@ -74,6 +74,10 @@ test('English and German shortcuts use explicit kilometres', () => {
   assert.throws(()=>parseTextQuery('within 30 km or 40 km of Kehl',places,['DE']));
   assert.throws(()=>parseTextQuery('within -1 km of Kehl',places,['DE']));
 });
+test('French radius shortcut resolves a unique place', () => {
+  const parsed=parseTextQuery('Tous les codes postaux dans un rayon de 30 km autour de Kehl',places,['DE','FR']);
+  assert.equal(parsed.center.name,'Kehl'); assert.equal(parsed.radiusKm,30);
+});
 test('CSV escaping, BOM, CRLF and formula injection prevention', () => {
   assert.equal(csvCell('a,"b"'),'"a,""b"""'); assert.equal(csvCell('line\nbreak'),'"line\nbreak"');
   for(const s of ['=SUM(1)',' +1','@evil','-cmd','\t=1']) assert.ok(csvCell(s).startsWith("'"));

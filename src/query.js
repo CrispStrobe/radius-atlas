@@ -40,10 +40,10 @@ export function runQuery(places, query) {
     .sort((a, b) => a.country.localeCompare(b.country) || a.postalCode.localeCompare(b.postalCode));
   return { results, markers, uniquePostalCodes, placeCount: new Set(results.map(r => r.placeId)).size };
 }
-/** Small, explicit EN/DE convenience grammar. Not a general natural-language or AI interface. */
+/** Small, explicit EN/DE/FR convenience grammar. Not a general natural-language or AI interface. */
 export function parseTextQuery(text, places, countries) {
   if (typeof text !== 'string' || text.length > 400) throw new Error('Use a query shorter than 400 characters.');
-  if (/\b(driv\w*|fahr\w*|road|straßen|strassen|minutes?|minuten?|miles?|meilen?|boundary|boundaries|grenzen|gebietsgrenz\w*)\b/i.test(text)) {
+  if (/\b(driv\w*|fahr\w*|condu\w*|routi\w*|road|route|routes|straßen|strassen|minutes?|minuten?|miles?|meilen?|boundary|boundaries|limites?|fronti[eè]res?|grenzen|gebietsgrenz\w*)\b/i.test(text)) {
     throw new Error('Only point-based, straight-line distances in kilometres are supported.');
   }
   const amounts = [...text.matchAll(/(-?\d+(?:[.,]\d+)?)\s*(?:km|kilomet(?:er|re)(?:s|n)?)(?!\p{L})/giu)];

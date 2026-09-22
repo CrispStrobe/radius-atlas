@@ -3,11 +3,15 @@ import { validateDataset, indexPlaces, searchPlaces, normalize } from './data.js
 import { runQuery, parseTextQuery } from './query.js';
 import { makeExport, toCsv, postalCodesCsv, toGeoJson, downloadFile } from './exports.js';
 import { RadiusMap } from './map.js';
+import { initialLocale, locale, setLocale, t, translateDocument } from './i18n.js';
 const $ = id => document.getElementById(id);
+setLocale(initialLocale());
+translateDocument();
+$('language').value = locale;
 const state = { dataset: null, places: [], center: null, answer: null, payload: null, page: 0, suggestions: [], map: null };
 const PAGE_SIZE = 30;
-const number = n => n.toLocaleString('en');
-function notice(message, success = false) { $('notice').textContent = message; $('notice').hidden = !message; $('notice').classList.toggle('success', success); }
+const number = n => n.toLocaleString(locale);
+function notice(message, success = false) { $('notice').textContent = t(message); $('notice').hidden = !message; $('notice').classList.toggle('success', success); }
 function countries() { return [...document.querySelectorAll('input[name=country]:checked')].map(e => e.value); }
 function selectedCenter(place) {
   state.center = { name: place.name, country: place.country, latitude: place.latitude, longitude: place.longitude, id: place.id ?? null };
@@ -35,12 +39,12 @@ function applyQuery(fit = true) {
     $('metric-codes').textContent = number(state.answer.uniquePostalCodes.length);
     $('metric-records').textContent = number(state.answer.results.length);
     $('metric-radius').textContent = number(query.radiusKm);
-    $('map-title').textContent = `Around ${query.center.name}`;
-    $('map-info').textContent = `${query.radiusKm} km · ${query.countries.join(' + ')} · ${query.mode === 'places' ? 'place reference points' : 'postal points'}`;
+    $('map-title').textContent = t('Around {place}', { place: query.center.name });
+    $('map-info').textContent = `${query.radiusKm} km · ${query.countries.join(' + ')} · ${t(query.mode === 'places' ? 'place reference points' : 'postal points')}`;
     $('map-popup').hidden = true;
     $('rule-help').textContent = query.mode === 'places'
-      ? 'Select each postal locality by its derived reference point, then include every postal record assigned to that locality.'
-      : 'Select only individual postal-record coordinates inside the radius. This is not a postal-area boundary intersection.';
+      ? t('Select each postal locality by its derived reference point, then include every postal record assigned to that locality.')
+      : t('Select only individual postal-record coordinates inside the radius. This is not a postal-area boundary intersection.');
     state.map.setData(query, state.answer, state.places, fit);
     $('result-filter').value = ''; renderTable();
     document.querySelectorAll('[data-export]').forEach(b => b.disabled = false); $('share').disabled = false;
@@ -61,17 +65,17 @@ function renderTable() {
   const pages = Math.max(1, Math.ceil(all.length / PAGE_SIZE)); state.page = Math.min(state.page, pages - 1);
   const rows = all.slice(state.page * PAGE_SIZE, (state.page + 1) * PAGE_SIZE);
   const tbody = $('result-rows'); tbody.replaceChildren();
-  if (!rows.length) { const tr = tbody.insertRow(); const td = tr.insertCell(); td.colSpan = 5; td.textContent = 'No matches. Try a larger radius, different countries or another table filter.'; }
+  if (!rows.length) { const tr = tbody.insertRow(); const td = tr.insertCell(); td.colSpan = 5; td.textContent = t('No matches. Try a larger radius, different countries or another table filter.'); }
   for (const row of rows) {
     const tr = tbody.insertRow();
     tr.insertCell().textContent = row.place;
     tr.insertCell().textContent = row.postalCode;
     const country = document.createElement('span'); country.className = 'table-country'; country.textContent = row.country; tr.insertCell().append(country);
     const dist = tr.insertCell(); dist.className = 'align-right distance-cell'; dist.textContent = `${row.distanceKm.toFixed(2)} km`;
-    if (!row.pointInsideRadius) { const note = document.createElement('span'); note.className = 'outside'; note.textContent = 'PLZ point outside'; note.title = 'Included through the selected locality reference point; its individual postal point lies outside the radius.'; dist.append(note); }
+    if (!row.pointInsideRadius) { const note = document.createElement('span'); note.className = 'outside'; note.textContent = t('PLZ point outside'); note.title = t('Included through the selected locality reference point; its individual postal point lies outside the radius.'); dist.append(note); }
     const coordinates = tr.insertCell(); coordinates.className = 'coordinate-column'; coordinates.textContent = `${row.latitude.toFixed(4)}, ${row.longitude.toFixed(4)}`;
   }
-  $('table-count').textContent = all.length ? `${state.page * PAGE_SIZE + 1}–${Math.min((state.page + 1) * PAGE_SIZE, all.length)} of ${number(all.length)} records` : '0 records';
+  $('table-count').textContent = all.length ? t('{from}–{to} of {count} records', { from: state.page * PAGE_SIZE + 1, to: Math.min((state.page + 1) * PAGE_SIZE, all.length), count: number(all.length) }) : t('0 records');
   $('page-count').textContent = `${state.page + 1} / ${pages}`;
   $('previous-page').disabled = state.page === 0; $('next-page').disabled = state.page === pages - 1;
 }
@@ -112,29 +116,29 @@ async function init() {
     if (!/^https:\/\//.test(config.tileUrl) || !['{z}', '{x}', '{y}'].every(s => config.tileUrl.includes(s))) config.tilesEnabled = false;
     if (new URLSearchParams(location.search).get('tiles') === 'off') config.tilesEnabled = false;
     $('tiles-toggle').checked = config.tilesEnabled;
-    if (!config.tilesEnabled) $('basemap-status').textContent = 'Points-only map · street tiles disabled';
+    if (!config.tilesEnabled) $('basemap-status').textContent = t('Points-only map · street tiles disabled');
     $('tile-attribution').textContent = config.tileAttribution;
     $('tile-attribution').href = safeHttpUrl(config.tileAttributionUrl, 'https://www.openstreetmap.org/copyright');
     state.map = new RadiusMap($('map'), { config,
-      onStatus: message => { if (state.map?.config.tilesEnabled) $('basemap-status').textContent = message; },
+      onStatus: message => { if (state.map?.config.tilesEnabled) $('basemap-status').textContent = t(message); },
       onSelect: marker => {
         $('popup-name').textContent = `${marker.name} · ${marker.country}`;
         $('popup-codes').textContent = marker.postalCodes.join(', ');
-        $('popup-distance').textContent = `${marker.distanceKm.toFixed(2)} km from query center`;
+        $('popup-distance').textContent = t('{distance} km from query center', { distance: marker.distanceKm.toFixed(2) });
         $('map-popup').hidden = false;
       },
       onPick: point => {
         selectedCenter({ ...point, name: 'Map point' }); state.map.pick = false;
-        $('map').classList.remove('picking'); $('pick-center').setAttribute('aria-pressed', 'false'); $('pick-center').textContent = '⊕ Set center on map'; applyQuery(false);
+        $('map').classList.remove('picking'); $('pick-center').setAttribute('aria-pressed', 'false'); $('pick-center').textContent = t('⊕ Set center on map'); applyQuery(false);
       }
     });
     const preview = dataset.meta.coverage !== 'country-files';
-    $('dataset-title').textContent = preview ? 'Illustrative preview dataset' : `GeoNames · ${dataset.meta.countries.join(' + ')}`;
-    $('dataset-meta').textContent = `${number(dataset.records.length)} records · ${preview ? 'not a complete geographic result' : `retrieved ${dataset.meta.retrievedAt?.slice(0, 10) || 'date not specified'}`}`;
+    $('dataset-title').textContent = preview ? t('Illustrative preview dataset') : `GeoNames · ${dataset.meta.countries.join(' + ')}`;
+    $('dataset-meta').textContent = t('{count} records · {detail}', { count: number(dataset.records.length), detail: preview ? t('not a complete geographic result') : t('retrieved {date}', { date: dataset.meta.retrievedAt?.slice(0, 10) || t('date not specified') }) });
     $('metadata').textContent = JSON.stringify(dataset.meta, null, 2);
     $('build-version').textContent = build.version || 'unknown';
     $('build-ref').textContent = build.ref || '—';
-    $('build-time').textContent = build.builtAt ? new Date(build.builtAt).toLocaleString() : 'development build';
+    $('build-time').textContent = build.builtAt ? new Date(build.builtAt).toLocaleString(locale) : t('development build');
     const commit = String(build.commit || 'unknown');
     if (/^[0-9a-f]{40}$/i.test(commit)) {
       $('build-commit').textContent = commit.slice(0, 12);
@@ -183,7 +187,10 @@ async function init() {
 $('query-form').addEventListener('submit', e => { e.preventDefault(); applyQuery(); });
 $('radius-slider').addEventListener('input', e => { $('radius').value = e.target.value; });
 $('radius').addEventListener('input', e => { $('radius-slider').value = Math.min(150, Number(e.target.value)); });
-$('mode').addEventListener('change', () => { $('rule-help').textContent = $('mode').value === 'places' ? 'All known PLZ of a selected postal locality are returned; some individual postal points can be outside the radius.' : 'Only individual postal coordinates within the radius are returned. No area-boundary intersection is performed.'; });
+$('mode').addEventListener('change', () => { $('rule-help').textContent = t($('mode').value === 'places' ? 'All known PLZ of a selected postal locality are returned; some individual postal points can be outside the radius.' : 'Only individual postal coordinates within the radius are returned. No area-boundary intersection is performed.'); });
+$('language').addEventListener('change', e => {
+  setLocale(e.target.value); location.reload();
+});
 $('parse-query').addEventListener('click', () => {
   try { if (!state.dataset) throw new Error('Wait for the dataset to load.'); const parsed = parseTextQuery($('text-query').value, state.places, countries());
     selectedCenter(parsed.center); $('radius').value = parsed.radiusKm; $('radius-slider').value = Math.min(150, parsed.radiusKm); applyQuery();

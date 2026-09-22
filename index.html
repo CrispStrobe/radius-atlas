@@ -15,7 +15,7 @@
   <a class="skip" href="#results">Skip to results</a>
   <header class="topbar">
     <a class="brand" href="./" aria-label="Radius Atlas home"><span class="brand-mark" aria-hidden="true">◎</span><span>radius<span class="brand-light">atlas</span><small>POSTAL GEOGRAPHY WORKSPACE</small></span></a>
-    <div class="top-actions"><span class="status-pill"><span class="dot"></span> Browser-side queries</span><button id="about-button" class="text-button">Data &amp; method <span aria-hidden="true">↗</span></button></div>
+    <div class="top-actions"><span class="status-pill"><span class="dot"></span> Browser-side queries</span><label class="language-picker"><span class="sr-only">Language</span><select id="language" aria-label="Language"><option value="en">EN</option><option value="de">DE</option><option value="fr">FR</option></select></label><button id="about-button" class="text-button">Data &amp; method <span aria-hidden="true">↗</span></button></div>
   </header>
   <main class="workspace">
     <aside class="sidebar" aria-label="Query builder">
@@ -38,7 +38,7 @@
       </form>
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
       <div class="sidebar-divider"></div>
-      <details class="query-shortcut"><summary>Or write a simple query <span>↗</span></summary><label class="sr-only" for="text-query">Simple English or German radius query</label><textarea id="text-query" rows="3" placeholder="Alle PLZ im Umkreis von 30 km um Kehl"></textarea><button id="parse-query" class="secondary">Use this query</button><p class="field-help">English or German radius shortcuts. Uses the countries and rule above; not a general AI search.</p></details>
+      <details class="query-shortcut"><summary>Or write a simple query <span>↗</span></summary><label class="sr-only" for="text-query">Simple English, German or French radius query</label><textarea id="text-query" rows="3" placeholder="Tous les codes postaux dans un rayon de 30 km autour de Kehl"></textarea><button id="parse-query" class="secondary">Use this query</button><p class="field-help">English, German or French radius shortcuts. Uses the countries and rule above; not a general AI search.</p></details>
       <div class="method-note"><span class="note-icon">i</span><p><strong>Distance, not driving time.</strong><br>All distances are approximate straight-line measurements. Postal localities are not verified political municipalities.</p></div>
       <div class="dataset-card"><span class="eyebrow">DATA SNAPSHOT</span><strong id="dataset-title">Loading…</strong><span id="dataset-meta"></span><button id="data-button" class="text-button">Source, coverage &amp; license ↗</button></div>
     </aside>

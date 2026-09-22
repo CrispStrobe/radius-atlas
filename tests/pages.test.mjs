@@ -30,3 +30,10 @@ test('About dialog carries operator, privacy, warranty, source and licence notic
     'Third-party services and data', 'Not affiliated', 'build-commit', 'CrispStrobe/radius-atlas',
     'THIRD_PARTY_NOTICES.md']) assert.match(html, new RegExp(required));
 });
+
+test('interface offers English, German and French localization', async () => {
+  const [html, i18n] = await Promise.all([readFile(new URL('index.html', root), 'utf8'), readFile(new URL('src/i18n.js', root), 'utf8')]);
+  for (const code of ['en','de','fr']) assert.match(html, new RegExp(`<option value="${code}">`));
+  assert.match(i18n, /const supported = \['en', 'de', 'fr'\]/);
+  assert.match(i18n, /Datenschutz/); assert.match(i18n, /Confidentialité/);
+});

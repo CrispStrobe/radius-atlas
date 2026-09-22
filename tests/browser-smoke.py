@@ -46,9 +46,9 @@ def load(page, query='?tiles=off'):
     dataset = json.loads((ROOT / 'public/data/dataset.json').read_text())
     prefix = "(() => { const __modules = {}; const location = new URL(" + json.dumps(BASE + '/' + query) + "); window.__testLocation = location; const history = { replaceState(_a,_b,url) { location.href = url; } }; const __data = " + json.dumps(dataset) + "; const __config = " + json.dumps(config) + "; const fetch = async (url) => new Response(JSON.stringify(String(url).endsWith('/data/dataset.json') || url === './data/dataset.json' ? __data : __config), {status:200}); "
     parts = [prefix]
-    for name in ['geo','data','query','exports','map','app']:
+    for name in ['geo','data','query','exports','map','i18n','app']:
         code = (ROOT / f'src/{name}.js').read_text()
-        exports = re.findall(r'^export (?:function|class|const) (\w+)', code, flags=re.M)
+        exports = re.findall(r'^export (?:function|class|const|let) (\w+)', code, flags=re.M)
         code = re.sub(r"import \{([^}]+)\} from '\./([^']+)\.js';", lambda m: 'const {' + m[1] + '} = __modules[' + json.dumps(m[2]) + '];', code)
         code = re.sub(r'^export ', '', code, flags=re.M)
         parts.append('__modules[' + json.dumps(name) + '] = (() => {\n' + code + '\nreturn {' + ','.join(exports) + '}; })();')
