@@ -44,6 +44,6 @@ try {
   await rename(resolve(out, 'dataset.json.tmp'), resolve(out, 'dataset.json'));
   console.log(`Wrote ${dataset.records.length.toLocaleString('en')} records. No database/API needed at runtime.`);
 } catch (e) {
-  console.error(`Data import failed: ${e.message}\nNo production dataset was silently substituted. Run npm run build for the clearly labelled preview, or supply GEONAMES_RAW_DIR.`);
+  console.error(`Data import failed: ${e.message}\nNo dataset was substituted. Retry the import or supply GEONAMES_RAW_DIR.`);
   process.exitCode = 1;
 }

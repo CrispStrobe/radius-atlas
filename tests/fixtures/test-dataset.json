@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "meta": {
-    "title": "Illustrative Kehl-area software preview",
+    "title": "Isolated Kehl-area test dataset",
     "coverage": "illustrative-fixture",
     "countries": [
       "DE",
       "FR"
     ],
     "recordCount": 39,
-    "source": "Radius Atlas illustrative test fixtures",
-    "sourceUrl": "./docs/preview-data.md",
+    "source": "Radius Atlas isolated test dataset",
+    "sourceUrl": "./tests/fixtures/test-dataset.json",
     "license": "CC-BY-4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
     "attribution": "Illustrative test data: Christian Ströbele and Radius Atlas contributors, CC BY 4.0. These are not GeoNames records and are not a verified or complete geographic dataset.",
     "retrievedAt": null,
     "createdAt": "2026-09-22",
     "changes": "Manually constructed software-test fixtures using approximate locations and example postal codes; no source-dataset completeness or accuracy claim.",
-    "warning": "Never use this preview as the answer to a real geographic query. Replace it with npm run data:refresh. Administrative codes intentionally contain the string preview."
+    "warning": "Test-only data. This file is never copied into production builds."
   },
   "records": [
     {

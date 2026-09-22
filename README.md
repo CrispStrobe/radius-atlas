@@ -6,27 +6,25 @@ A dependency-free, static web application prepared for GitHub Pages and Vercel. 
 spatial queries and file exports in the browser. There is no runtime database,
 account system, API key, external geocoder or AI service.
 
-> **Delivery status:** the included data is a clearly labelled, 39-record
-> **illustrative software fixture**, not a downloaded GeoNames extract and not a
-> valid answer to a real-world “all PLZ” query. The app is functional with this
-> fixture. The production deployment imports Germany and France from GeoNames.
-> Live archive downloads and an actual deployment were not verified in the
-> authoring environment. See [testing](docs/testing.md).
+The repository deliberately contains no deployable postal dataset. Production
+builds obtain Germany and France data directly from GeoNames, and fail rather than
+substitute test data. The live GitHub Pages deployment currently serves the
+country-file import.
 
-## Run the preview
+## Run locally
 
 Install Node.js 22 or later, then run:
 
 ```sh
+npm run data:refresh
 npm run dev
 ```
 
 Open `http://localhost:3000`. No `npm install` is needed: this project has no package
 dependencies. It must be served over HTTP, not opened as a `file://` document.
 
-The initial query is Kehl, 30 km, Germany, place-reference-point mode.
-Enable France to demonstrate a cross-border query. The query and export panels
-always retain the preview-data warning until country data replaces the fixture.
+The initial query is Kehl, 30 km, Germany, place-reference-point mode. Enable
+France to run a cross-border query.
 
 ## Full dataset
 
@@ -43,9 +41,8 @@ Each archive is recorded with its source URL, SHA-256 and HTTP `Last-Modified`
 when available. The fetched README is archived beside the dataset. The retrieval
 date does not mean every source record was updated that day.
 
-The importer retries transient downloads. It **fails loudly**, without silently
-switching to the fixture, if downloads, ZIP integrity, expected minimum record
-counts, or data-quality thresholds fail.
+The importer retries transient downloads. It **fails loudly** if downloads, ZIP
+integrity, expected minimum record counts, or data-quality thresholds fail.
 
 The current schema accepts ordinary five-digit German and French postcodes.
 GeoNames rows labelled as CEDEX or other non-five-digit routing codes are counted
@@ -93,10 +90,10 @@ The app uses relative asset and data URLs, so both `https://user.github.io/` and
 project sites such as `https://user.github.io/radius-atlas/` work without a
 hard-coded repository name. A `.nojekyll` file is included in each build.
 
-The production workflow deliberately fails if the GeoNames import fails; it will
-not silently publish the illustrative fixture. For a reproducible deployment,
-commit a reviewed generated dataset and change the workflow build command from
-`npm run build:full` to `npm run build`.
+The production workflow deliberately fails if the GeoNames import fails. For a
+reproducible deployment, run `npm run data:refresh`, review and commit the generated
+dataset and source notice, then change the workflow command from `npm run build:full`
+to `npm run build`.
 
 ## Deploy on Vercel
 
@@ -111,16 +108,12 @@ Publish this folder as a GitHub repository and import it into Vercel. The includ
 | Build command | `npm run build:full` |
 | Output directory | `dist` |
 
-`build:full` imports the real country files and then builds static assets. It does
-not deploy the illustrative fixture as though it were production data.
+`build:full` imports the country files and then builds the static assets.
 
 For reproducible, network-independent deployments, run `npm run data:refresh`
 locally, review and commit the generated snapshot and source notice, then change
 `vercel.json`'s build command to `npm run build`. Each deployment will then use the
 reviewed committed snapshot. Keep provenance and license notices with the data.
-
-For an intentionally labelled preview deployment, `npm run build` also works with
-the original fixture; do not describe that deployment as a full geographic search.
 
 Queries use URL parameters at `/`, so no SPA catch-all rewrite is necessary.
 Static JSON and application assets are same-origin. Tile images come directly from
@@ -137,8 +130,8 @@ git commit -m "Initial Radius Atlas app"
 gh repo create radius-atlas --public --source=. --remote=origin --push
 ```
 
-The repository was prepared as files; no remote repository or live deployment has
-been created by this archive. Change the repository name or visibility as needed.
+The canonical repository is https://github.com/CrispStrobe/radius-atlas and the
+live deployment is https://crispstrobe.github.io/radius-atlas/.
 
 ## What the app does
 
@@ -208,7 +201,6 @@ unambiguously. The table filter and pagination never limit exported matches.
 | --- | --- |
 | Original code, tests, tooling, HTML, CSS | MIT |
 | Original README and documentation | CC BY 4.0 |
-| Illustrative preview fixtures | CC BY 4.0, explicitly not validated source data |
 | Imported GeoNames postal data | CC BY 4.0 per upstream source notice |
 | Optional OSM basemap | Separate OSM attribution and provider terms; not in exports |
 
@@ -246,15 +238,15 @@ does not mean that hosting or third-party tiles involve no network or logs.
 ```sh
 npm test
 npm run check
-npm run build
+npm run build:full
 npm start
 ```
 
 Unit tests exercise radius boundaries, coordinates, country filtering, namesakes,
 place-first versus point-first selection, leading-zero PLZ, CSV injection defence,
 export provenance, ZIP parsing/CRC, duplicate detection and validation.
-They always use a dedicated test fixture, regardless of the production dataset.
-A GitHub Actions workflow runs the offline checks.
+They always use an isolated fixture under `tests/`, which is never copied into a
+site build. GitHub Actions imports the country files before verifying the build.
 
 Optional browser smoke test, with Python 3 and Playwright installed:
 
@@ -284,16 +276,15 @@ scripts/import-geonames.mjs GeoNames TSV parser and data provenance
 scripts/zip.mjs             Bounded ZIP reader, CRC verification
 scripts/build.mjs           Static output → dist/
 public/config.json         Public tile configuration
-public/data/               Dataset and archived source notice
+public/data/               Generated dataset and source notice (gitignored)
 vercel.json                Production build and security headers
 tests/                     Unit and optional browser tests
 docs/                      Semantics, deployment limitations and QA
 ```
 
-The delivery environment ran **26 unit tests and 25 isolated Chromium renderer
-checks**. Browser HTTP fetching and location were mocked because managed Chromium
-navigation was blocked. Live GeoNames downloads and deployment remain unverified;
-see [the precise verification scope](docs/testing.md). To reproduce isolated mode:
+The current suite contains **32 unit and repository checks**. The production
+GitHub Actions workflow also imports GeoNames and deploys the generated site.
+To run the optional browser suite without live network requests:
 
 ```sh
 ISOLATED_DOM=1 python tests/browser-smoke.py

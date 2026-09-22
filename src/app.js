@@ -132,9 +132,8 @@ async function init() {
         $('map').classList.remove('picking'); $('pick-center').setAttribute('aria-pressed', 'false'); $('pick-center').textContent = t('⊕ Set center on map'); applyQuery(false);
       }
     });
-    const preview = dataset.meta.coverage !== 'country-files';
-    $('dataset-title').textContent = preview ? t('Illustrative preview dataset') : `GeoNames · ${dataset.meta.countries.join(' + ')}`;
-    $('dataset-meta').textContent = t('{count} records · {detail}', { count: number(dataset.records.length), detail: preview ? t('not a complete geographic result') : t('retrieved {date}', { date: dataset.meta.retrievedAt?.slice(0, 10) || t('date not specified') }) });
+    $('dataset-title').textContent = `GeoNames · ${dataset.meta.countries.join(' + ')}`;
+    $('dataset-meta').textContent = t('{count} records · {detail}', { count: number(dataset.records.length), detail: t('retrieved {date}', { date: dataset.meta.retrievedAt?.slice(0, 10) || t('date not specified') }) });
     $('metadata').textContent = JSON.stringify(dataset.meta, null, 2);
     $('build-version').textContent = build.version || 'unknown';
     $('build-ref').textContent = build.ref || '—';
@@ -148,10 +147,6 @@ async function init() {
       $('build-commit').removeAttribute('href');
     }
     $('source-credit').textContent = dataset.meta.attribution;
-    if (preview) {
-      $('coverage-warning').hidden = false;
-      $('coverage-warning').textContent = 'PREVIEW DATA — Illustrative test records, not a complete or validated geographic list. Production deployment runs the GeoNames country importer. See README → Full dataset.';
-    }
     for (const input of document.querySelectorAll('input[name=country]')) {
       input.disabled = !dataset.meta.countries.includes(input.value);
       if (input.disabled) input.checked = false;
@@ -179,7 +174,7 @@ async function init() {
     });
     document.addEventListener('click', e => { if (!$('suggestions').contains(e.target) && e.target !== $('place-search')) { $('suggestions').hidden = true; $('place-search').setAttribute('aria-expanded', 'false'); } });
   } catch (e) {
-    notice(`Startup failed: ${e.message} Run npm run build, or npm run data:refresh for country data, and serve the app over HTTP.`);
+    notice(`Startup failed: ${e.message} Run npm run data:refresh, then serve the app over HTTP.`);
     $('result-rows').replaceChildren(); const td = $('result-rows').insertRow().insertCell(); td.colSpan = 5; td.textContent = 'Dataset unavailable. See the error in the query panel.';
     $('dataset-title').textContent = 'Data unavailable';
   }

@@ -43,7 +43,7 @@ def load(page, query='?tiles=off'):
     page.add_style_tag(content=(ROOT / 'src/styles.css').read_text())
     config = json.loads((ROOT / 'public/config.json').read_text())
     config['tilesEnabled'] = False
-    dataset = json.loads((ROOT / 'public/data/dataset.json').read_text())
+    dataset = json.loads((ROOT / 'tests/fixtures/test-dataset.json').read_text())
     prefix = "(() => { const __modules = {}; const location = new URL(" + json.dumps(BASE + '/' + query) + "); window.__testLocation = location; const history = { replaceState(_a,_b,url) { location.href = url; } }; const __data = " + json.dumps(dataset) + "; const __config = " + json.dumps(config) + "; const fetch = async (url) => new Response(JSON.stringify(String(url).endsWith('/data/dataset.json') || url === './data/dataset.json' ? __data : __config), {status:200}); "
     parts = [prefix]
     for name in ['geo','data','query','exports','map','i18n','app']:
@@ -77,12 +77,11 @@ with sync_playwright() as p:
     load(page)
     page.wait_for_function("document.getElementById('metric-records').textContent !== '—'")
     check('Default query renders results', int(page.locator('#metric-records').inner_text()) > 0)
-    check('Fixture warning is visible', page.locator('#coverage-warning').is_visible())
     check('Tiles disabled for browser test', not page.locator('#tiles-toggle').is_checked())
     check('No desktop document overflow', page.evaluate('document.documentElement.scrollWidth <= innerWidth'))
     page.screenshot(path=str(OUT / 'desktop.png'), full_page=True)
     baseline = json.loads(download(page, 'json'))
-    check('JSON contains query and honest fixture provenance', baseline['query']['radiusKm'] == 30 and baseline['dataset']['coverage'] == 'illustrative-fixture')
+    check('JSON contains query and isolated test provenance', baseline['query']['radiusKm'] == 30 and baseline['dataset']['coverage'] == 'illustrative-fixture')
     check('JSON counts match actual records', baseline['counts']['postalRecords'] == len(baseline['results']))
     text = download(page, 'csv')
     rows = list(csv.DictReader(io.StringIO(text)))
@@ -147,6 +146,6 @@ with sync_playwright() as p:
     context.close()
     browser.close()
 
-report = {'status': 'passed', 'checks': len(results), 'mode': 'isolated-renderer-mocked-fetch-and-location' if ISOLATED else 'http-browser', 'passed': results, 'scope': 'Illustrative preview fixture only; tiles off. No live GeoNames import or Vercel deployment was tested.'}
+report = {'status': 'passed', 'checks': len(results), 'mode': 'isolated-renderer-mocked-fetch-and-location' if ISOLATED else 'http-browser', 'passed': results, 'scope': 'Isolated test dataset only; tiles off. Production imports are verified by GitHub Actions.'}
 (OUT / 'browser-report.json').write_text(json.dumps(report, indent=2) + '\n')
 print(json.dumps(report, indent=2))

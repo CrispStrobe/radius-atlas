@@ -6,14 +6,14 @@ import { distanceKm, destination, referencePoint, project, unproject } from '../
 import { indexPlaces, searchPlaces, validateDataset } from '../src/data.js';
 import { runQuery, parseTextQuery } from '../src/query.js';
 import { makeExport, toCsv, toGeoJson, csvCell, postalCodesCsv } from '../src/exports.js';
-const data = JSON.parse(await readFile(new URL('./fixtures/preview.json', import.meta.url),'utf8'));
+const data = JSON.parse(await readFile(new URL('./fixtures/test-dataset.json', import.meta.url),'utf8'));
 const places = indexPlaces(data.records);
 const kehl = places.find(p => p.name === 'Kehl');
 const base = { center: kehl, radiusKm: 30, countries: ['DE'], mode: 'places' };
 function row(id, place, latitude, longitude, postalCode = '00001', country = 'DE', code = 'x') {
   return { id, place, latitude, longitude, postalCode, country, adminCodes:['x','x',code], adminArea1:'Region', adminArea2:'Area', adminArea3:'District', accuracy:1 };
 }
-test('preview validates but does not claim country completeness', () => { assert.equal(validateDataset(data), data); assert.equal(data.meta.coverage, 'illustrative-fixture'); });
+test('isolated test dataset validates without claiming country completeness', () => { assert.equal(validateDataset(data), data); assert.equal(data.meta.coverage, 'illustrative-fixture'); });
 test('invalid coordinates and duplicate IDs are rejected', () => {
   const bad = structuredClone(data); bad.records[0].latitude = 100; assert.throws(() => validateDataset(bad));
   const dup = structuredClone(data); dup.records.push(dup.records[0]); assert.throws(() => validateDataset(dup));

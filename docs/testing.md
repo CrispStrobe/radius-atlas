@@ -1,6 +1,6 @@
 # Verification and delivery status
 
-Verification recorded on 2026-09-22. Software tests use illustrative test data;
+Verification recorded on 2026-09-22. Software tests use an isolated test dataset;
 they do not establish the accuracy or completeness of actual postal geography.
 
 ## Successfully checked
@@ -11,7 +11,7 @@ they do not establish the accuracy or completeness of actual postal geography.
   text-query rejection, deduplication, export metadata, leading-zero PLZ,
   CSV escaping and formula defence, ZIP integrity and GeoNames TSV parsing.
 - **JavaScript syntax checks** across source, scripts and unit tests.
-- **Static build** from the bundled, clearly labelled 39-record fixture.
+- **Production static build** after importing the GeoNames country files in GitHub Actions.
 - **25 isolated Chromium renderer checks** using the original module bodies,
   with HTTP data fetches and browser location/history mocked. These exercise
   actual DOM controls, map drawing and coordinate picking, CSV/JSON/GeoJSON
@@ -43,7 +43,7 @@ but has not had a formal accessibility audit.
 ```sh
 npm test
 npm run check
-npm run build
+npm run build:full
 npm start
 ```
 
@@ -54,8 +54,7 @@ python tests/browser-smoke.py
 ```
 
 This normal mode serves the real app over HTTP. **The smoke suite expects the
-bundled preview fixture**, so run it before replacing that fixture with country
-data, or use a clean checkout. Unit tests always use their own separate fixture.
+isolated test dataset** under `tests/`; it is never copied into production builds.
 The optional browser suite is not part of the dependency-free Node CI workflow.
 
 For restricted environments that allow DOM rendering but not browser navigation:

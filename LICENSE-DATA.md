@@ -7,11 +7,6 @@ Attribution: **Christian Ströbele and Radius Atlas contributors**.
 License and complete legal text: https://creativecommons.org/licenses/by/4.0/
 https://creativecommons.org/licenses/by/4.0/legalcode.en
 
-The illustrative preview records are separately offered under **CC BY 4.0**, with
-the attribution and limitations embedded in `public/data/dataset.json`. They are
-not GeoNames data and must not be represented as a complete or verified geographic
-list. Some fields are explicitly fictional test values.
-
 A production import obtains GeoNames postal-code data under **CC BY 4.0**, according
 to the source README, and preserves the original attribution. GeoNames retains
 its rights. Radius Atlas identifies conversion, filtering, deduplication,
