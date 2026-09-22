@@ -4,15 +4,15 @@
 
 ## Current implementation
 
-The query operates on GeoNames postal records, not verified administrative
-municipalities. A place group is identified by country, all three supplied
-administrative codes, and the case-folded exact locality name. Accents and
-punctuation are kept in the identity; they are ignored only for search.
+For Switzerland, the query uses the official swisstopo locality/postcode directory
+and groups records by the supplied BFS political-municipality ID. For Germany and
+France it uses GeoNames postal records, not verified municipalities; those groups
+use country, administrative codes, and exact locality name.
 
-A group's reference point is the spherical mean of its distinct coordinates. This
-is a repeatable algorithm, not a town hall, geographic polygon centroid, resident
-weighted center, or officially endorsed municipal point. Estimated upstream
-coordinates remain estimated after processing.
+A Swiss municipality reference point is a spherical mean weighted by each row's
+official address share. Other groups use the unweighted spherical mean of distinct
+coordinates. These are repeatable derived points, not town halls, polygon
+centroids, or officially endorsed municipal centres.
 
 The radius test is inclusive. An implementation tolerance of 1e-9 km handles
 floating-point noise, not source uncertainty. Haversine uses a mean Earth radius
@@ -35,12 +35,13 @@ and exports for exhaustive inspection.
 
 This does not implement administrative-boundary intersections, PLZ-area
 intersections, isochrones, route distances, or an arbitrary GIS/AI query language.
-DE/FR source files are supported. Other countries may have different postcode and
-administrative formats and require a reviewed adapter and validation policy.
+DE/FR GeoNames files and the official CH CSV are supported. Other countries may
+have different formats and require a reviewed adapter and validation policy.
 
-## Adding political municipalities correctly
+## Political municipalities and future expansion
 
-A subsequent authoritative layer should have three explicit relations:
+The Swiss adapter supplies the first two relationships without bundling geometry.
+Future adapters and boundary-intersection support should retain these relations:
 
 ```
 municipalities(country, municipality_id, name, reference_lat, reference_lon,
@@ -65,7 +66,7 @@ Define whether the origin is a Kehl point or the whole Kehl municipality.
 BKG VG250 is an option for municipality geometries under dl-de/by-2-0. A reviewed
 OpenPLZ crosswalk would introduce ODbL duties; retain those terms. The imported
 data license cannot be replaced by this app's MIT or CC BY documentation license.
-Neither adapter is implemented in the present repository.
+Neither German adapter is implemented in the present repository.
 
 References checked during preparation:
 
@@ -77,5 +78,7 @@ References checked during preparation:
   https://www.openplzapi.org/en/faq/
 - BKG VG250:
   https://gdz.bkg.bund.de/index.php/default/verwaltungsgebiete-1-250-000-stand-01-01-vg250-01-01.html
+- swisstopo official locality/postcode directory:
+  https://data.geo.admin.ch/ch.swisstopo-vd.ortschaftenverzeichnis_plz/
 
 Verify the current data vintages and licenses before adding a new provider.

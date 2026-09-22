@@ -7,9 +7,8 @@ spatial queries and file exports in the browser. There is no runtime database,
 account system, API key, external geocoder or AI service.
 
 The repository deliberately contains no deployable postal dataset. Production
-builds obtain Germany and France data directly from GeoNames, and fail rather than
-substitute test data. The live GitHub Pages deployment currently serves the
-country-file import.
+builds obtain Germany and France data from GeoNames and official Swiss data from
+swisstopo, and fail rather than substitute test data.
 
 ## Run locally
 
@@ -33,7 +32,8 @@ npm run data:refresh
 npm run dev
 ```
 
-The importer fetches `DE.zip`, `FR.zip` and the GeoNames postal README. It validates
+The importer fetches `DE.zip`, `FR.zip`, the GeoNames postal README, and swisstopo's
+official Swiss WGS84 locality/postcode CSV. It validates
 postal codes and coordinates, removes exact duplicate records, records rejected
 rows, assigns stable hashed IDs, and writes `public/data/dataset.json`.
 
@@ -44,7 +44,7 @@ date does not mean every source record was updated that day.
 The importer retries transient downloads. It **fails loudly** if downloads, ZIP
 integrity, expected minimum record counts, or data-quality thresholds fail.
 
-The current schema accepts ordinary five-digit German and French postcodes.
+The current schema accepts ordinary five-digit German/French and four-digit Swiss postcodes.
 GeoNames rows labelled as CEDEX or other non-five-digit routing codes are counted
 as intentionally unsupported and excluded; malformed coordinates and rows are
 reported separately as rejected records.
@@ -136,7 +136,7 @@ live deployment is https://crispstrobe.github.io/radius-atlas/.
 ## What the app does
 
 - Location/postcode search with disambiguating administrative labels, 0–500 km
-  radius, Germany/France filters, shareable query links, and map-picked centers.
+  radius, Germany/France/Switzerland filters, shareable query links, and map-picked centers.
 - Interactive map: pan, zoom, keyboard controls, geodesic radius outline, result
   markers, place labels, click details, and optional street tiles.
 - Two explicit selection rules (below); distance-sorted, searchable, paginated
@@ -154,11 +154,12 @@ live deployment is https://crispstrobe.github.io/radius-atlas/.
 
 ## What “within 30 km” means
 
-**Places → all their known PLZ:** group records by country, administrative fields
-and exact postal-locality name. Derive a spherical mean of each group's distinct
-coordinates. Select groups whose reference point is at most the requested radius
-away. Return every known postal record in those groups, even where an individual
-postal point is outside the circle. Those rows are marked explicitly.
+**Places → all their known PLZ:** Swiss records are grouped by official BFS
+municipality ID, with an address-share-weighted spherical reference point derived
+from official postal-locality coordinates. German/French records remain grouped by
+administrative fields and exact postal-locality name. Select groups whose reference
+point is within the radius and return all their postal records; outlying individual
+points are marked explicitly.
 
 **Postal points → only inside radius:** test each original postal coordinate.
 Return only those inside the circle. The map shows those postal points.
@@ -167,8 +168,8 @@ Both use a spherical Haversine calculation with mean Earth radius 6371.0088 km.
 They are approximate straight-line distances, not WGS84 ellipsoidal survey-grade
 measurements, road distance, or travel time.
 
-**Postal locality ≠ political municipality.** This version does not promise the
-exact earlier requirement “all PLZ of all political municipalities.” In Germany,
+**Coverage differs by country.** Switzerland uses official political municipalities,
+BFS identifiers and municipality–postcode assignments from swisstopo. In Germany,
 GeoNames postal `admin3` is often a district, not an eight-digit AGS. The app never
 promotes it to a municipal identifier. Separate place names belonging to one
 municipality are not automatically merged. See [method and next layer](docs/method.md).
@@ -202,6 +203,7 @@ unambiguously. The table filter and pagination never limit exported matches.
 | Original code, tests, tooling, HTML, CSS | MIT |
 | Original README and documentation | CC BY 4.0 |
 | Imported GeoNames postal data | CC BY 4.0 per upstream source notice |
+| Swiss official locality/municipality data | Swiss federal open-geodata terms; © swisstopo |
 | Optional OSM basemap | Separate OSM attribution and provider terms; not in exports |
 
 Creative Commons recommends software-specific licenses for program code:
@@ -282,8 +284,8 @@ tests/                     Unit and optional browser tests
 docs/                      Semantics, deployment limitations and QA
 ```
 
-The current suite contains **32 unit and repository checks**. The production
-GitHub Actions workflow also imports GeoNames and deploys the generated site.
+The current suite contains **34 unit and repository checks**. The production
+GitHub Actions workflow imports GeoNames and swisstopo data and deploys the site.
 To run the optional browser suite without live network requests:
 
 ```sh
@@ -300,8 +302,7 @@ and assistive-technology accessibility have not been benchmarked or certified.
 For wider coverage or many polygons, use country-partitioned assets, a spatial
 index/worker, or a spatial database as a deliberate next step.
 
-For exact political-municipality queries, replace postal-locality grouping with
-an authoritative municipality identifier and a documented municipality-to-PLZ
-crosswalk. Choose official reference points or municipality-boundary intersection
-explicitly; do not infer municipalities from a shared place name. Keep each
-upstream license attached to that additional layer.
+For additional countries, use an authoritative municipality identifier and a
+documented municipality-to-postcode crosswalk. Choose a reference-point or
+boundary-intersection rule explicitly; do not infer municipalities from shared
+place names. Keep each upstream license attached to its layer.

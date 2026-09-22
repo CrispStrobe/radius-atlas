@@ -6,7 +6,7 @@ export function validateQuery(query) {
   assertCoordinate(query.center);
   if (!Number.isFinite(query.radiusKm) || query.radiusKm < 0 || query.radiusKm > 500) throw new RangeError('Radius must be 0–500 km.');
   if (!MODES.includes(query.mode)) throw new Error('Choose places or postal-points mode.');
-  if (!Array.isArray(query.countries) || !query.countries.length || query.countries.some(c => !['DE', 'FR'].includes(c))) throw new Error('Select Germany and/or France.');
+  if (!Array.isArray(query.countries) || !query.countries.length || query.countries.some(c => !['DE', 'FR', 'CH'].includes(c))) throw new Error('Select Germany, France and/or Switzerland.');
 }
 export function runQuery(places, query) {
   validateQuery(query);
@@ -20,14 +20,14 @@ export function runQuery(places, query) {
       const postalPointDistanceKm = distanceKm(query.center, record);
       if (query.mode === 'postal-points' && postalPointDistanceKm > query.radiusKm + 1e-9) continue;
       const distance = query.mode === 'places' ? referenceDistanceKm : postalPointDistanceKm;
-      const row = { id: record.id, placeId: place.id, place: place.name, kind: 'postal_locality',
+      const row = { id: record.id, placeId: place.id, place: place.name, kind: place.kind,
         country: record.country, postalCode: record.postalCode,
         adminArea1: record.adminArea1, adminArea2: record.adminArea2, adminArea3: record.adminArea3,
         latitude: record.latitude, longitude: record.longitude,
         referenceLatitude: place.latitude, referenceLongitude: place.longitude,
         distanceKm: distance, referenceDistanceKm, postalPointDistanceKm,
         pointInsideRadius: postalPointDistanceKm <= query.radiusKm + 1e-9,
-        accuracy: record.accuracy ?? null };
+        accuracy: record.accuracy ?? null, municipalityId: place.municipalityId ?? null, postalLocality: record.place };
       results.push(row); matching.push(row);
       if (query.mode === 'postal-points') markers.push({ ...record, name: place.name, postalCodes: [record.postalCode], distanceKm: distance });
     }
@@ -53,7 +53,7 @@ export function parseTextQuery(text, places, countries) {
   const norm = ` ${normalize(text)} `;
   const candidates = places.filter(p => countries.includes(p.country) && norm.includes(` ${p.searchName} `));
   if (!candidates.length) {
-    const postcode = text.match(/\b\d{5}\b/);
+    const postcode = text.match(/\b\d{4,5}\b/);
     const found = postcode ? searchPlaces(places, postcode[0], countries, 20) : [];
     if (found.length === 1) return { center: found[0], radiusKm };
     throw new Error('No unique place found. Choose a location from the search field instead.');

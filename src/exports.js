@@ -7,8 +7,8 @@ export function makeExport(dataset, query, answer, timestamp = new Date().toISOS
     sourceUrl: dataset.meta.sourceUrl, dataset: dataset.meta,
     query: { center: { name: query.center.name ?? 'Map point', latitude: query.center.latitude, longitude: query.center.longitude },
       radiusKm: query.radiusKm, countries: query.countries, mode: query.mode, distanceModel: 'haversine; mean Earth radius 6371.0088 km',
-      selectionRule: query.mode === 'places' ? 'Select postal localities by spherical-mean reference point, then include all their known postal records.' : 'Select individual postal-record coordinates inside the radius.',
-      warning: 'Postal localities are not verified municipalities. No administrative-boundary or postal-area intersection is performed. Source coordinates may be approximate.' },
+      selectionRule: query.mode === 'places' ? 'Select Swiss municipalities by address-share-weighted reference point and other postal localities by spherical-mean reference point, then include all their known postal records.' : 'Select individual postal-record coordinates inside the radius.',
+      warning: 'Swiss municipality assignments use official BFS identifiers, but reference points are derived and no boundary intersection is performed. DE/FR postal localities are not verified municipalities. GeoNames coordinates may be approximate.' },
     counts: { postalRecords: answer.results.length, places: answer.placeCount, uniquePostalCodes: answer.uniquePostalCodes.length },
     uniquePostalCodes: answer.uniquePostalCodes,
     results: answer.results.map(r => Object.fromEntries(Object.entries(r).map(([key, value]) => [key, typeof value === 'number' ? rounded(value) : value])))
@@ -23,7 +23,7 @@ export function csvCell(value, delimiter = ',') {
 export function toCsv(payload, delimiter = ',') {
   if (![',', ';'].includes(delimiter)) throw new Error('Unsupported delimiter.');
   const keys = ['country','postalCode','place','kind','latitude','longitude','distanceKm','referenceDistanceKm',
-    'postalPointDistanceKm','pointInsideRadius','referenceLatitude','referenceLongitude','accuracy','adminArea1','adminArea2','adminArea3'];
+    'postalPointDistanceKm','pointInsideRadius','referenceLatitude','referenceLongitude','accuracy','adminArea1','adminArea2','adminArea3','municipalityId','postalLocality'];
   const metaKeys = ['queryCenter','queryLatitude','queryLongitude','radiusKm','mode','coverage','retrievedAt','sourceUrl','license','licenseUrl','attribution','changes'];
   const metaValues = [payload.query.center.name,payload.query.center.latitude,payload.query.center.longitude,payload.query.radiusKm,
     payload.query.mode,payload.dataset.coverage,payload.dataset.retrievedAt,payload.sourceUrl,payload.license,payload.licenseUrl,payload.attribution,payload.dataset.changes];

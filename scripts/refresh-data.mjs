@@ -4,9 +4,10 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { unzipEntry } from './zip.mjs';
 import { parseGeoNames, makeDataset } from './import-geonames.mjs';
+import { parseSwisstopo } from './import-swisstopo.mjs';
 const root = resolve(import.meta.dirname, '..');
-const countries = (process.env.COUNTRIES || 'DE,FR').split(',').map(c => c.trim().toUpperCase());
-if (!countries.length || countries.some(c => !['DE','FR'].includes(c))) throw new Error('COUNTRIES supports DE,FR only.');
+const countries = (process.env.COUNTRIES || 'DE,FR,CH').split(',').map(c => c.trim().toUpperCase());
+if (!countries.length || countries.some(c => !['DE','FR','CH'].includes(c))) throw new Error('COUNTRIES supports DE,FR,CH only.');
 const uniqueCountries = [...new Set(countries)];
 const rawDir = process.env.GEONAMES_RAW_DIR;
 const out = resolve(root, 'public/data');
@@ -29,6 +30,15 @@ async function fetchLimited(url, limit = 16 * 1024 * 1024) {
 try {
   const imports = [], archives = [];
   for (const country of uniqueCountries) {
+    if (country === 'CH') {
+      const url = 'https://data.geo.admin.ch/ch.swisstopo-vd.ortschaftenverzeichnis_plz/ortschaftenverzeichnis_plz/ortschaftenverzeichnis_plz_4326.csv.zip';
+      console.log(`Importing CH from ${url}`);
+      const source = await fetchLimited(url);
+      const imported = parseSwisstopo(unzipEntry(source.bytes, 'AMTOVZ_CSV_WGS84/AMTOVZ_CSV_WGS84.csv'));
+      if (imported.records.length < 3000) throw new Error(`CH: unexpectedly small file (${imported.records.length} records).`);
+      imports.push(imported); archives.push({ country, provider: 'swisstopo', url, upstreamLastModified: source.lastModified, sha256: createHash('sha256').update(source.bytes).digest('hex') });
+      continue;
+    }
     const url = `https://download.geonames.org/export/zip/${country}.zip`;
     console.log(`Importing ${country} from ${rawDir ? 'local GeoNames ZIP' : url}`);
     const source = rawDir ? { bytes: await readFile(resolve(rawDir, `${country}.zip`)), lastModified: null } : await fetchLimited(url);

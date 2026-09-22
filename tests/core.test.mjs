@@ -57,6 +57,12 @@ test('country filtering and postal code namespace', () => {
   assert.equal(runQuery(p,{...base,center:{latitude:0,longitude:0}}).results.length,1);
   assert.equal(runQuery(p,{...base,center:{latitude:0,longitude:0},countries:['DE','FR']}).uniquePostalCodes.length,2);
 });
+test('Swiss records group by official BFS municipality and retain postal localities', () => {
+  const swiss=[{...row('ch1','Bern',46.948,7.4474,'3000','CH','1'),municipality:'Bern',municipalityId:'351',addressShare:75},
+    {...row('ch2','Bern 90',46.95,7.45,'3001','CH','2'),municipality:'Bern',municipalityId:'351',addressShare:25}];
+  const indexed=indexPlaces(swiss); assert.equal(indexed.length,1); assert.equal(indexed[0].kind,'municipality'); assert.equal(indexed[0].municipalityId,'351');
+  const answer=runQuery(indexed,{center:indexed[0],radiusKm:0,countries:['CH'],mode:'places'}); assert.equal(answer.results.length,2); assert.equal(answer.results[1].postalLocality,'Bern 90');
+});
 test('zero radius works and negative/NaN radius fails', () => {
   assert.ok(runQuery(places,{...base,radiusKm:0}).results.some(r=>r.place==='Kehl'));
   for(const radiusKm of [-1,NaN,501]) assert.throws(()=>runQuery(places,{...base,radiusKm}));

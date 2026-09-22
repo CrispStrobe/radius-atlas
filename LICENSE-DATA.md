@@ -26,3 +26,9 @@ licenses. In particular, do not relabel an ODbL-derived database as CC BY or CC 
 
 Map tiles are a separate external service, not bundled in this repository and not
 included in CSV, JSON or GeoJSON exports. Follow the selected provider's terms.
+
+Swiss postal-locality and political-municipality assignments are obtained from the
+official swisstopo directory. They remain under the Swiss federal open-geodata
+terms and are attributed **© swisstopo**; they are not relicensed as CC BY.
+Source: https://data.geo.admin.ch/ch.swisstopo-vd.ortschaftenverzeichnis_plz/
+Terms: https://www.swisstopo.admin.ch/en/terms-of-use-free-geodata-and-geoservices

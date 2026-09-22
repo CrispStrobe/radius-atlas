@@ -7,3 +7,5 @@
 .build-details{display:grid;grid-template-columns:max-content 1fr;gap:5px 15px;margin:16px 0;padding:13px;background:#eaf0e7;border-radius:5px;font-size:11px}.build-details dt{color:var(--muted)}.build-details dd{margin:0;overflow-wrap:anywhere}.build-details dd:not(:last-child){font-family:ui-monospace,monospace}dialog address{font-size:12px;line-height:1.65;font-style:normal;color:#607267}.legal-table{white-space:normal;margin:7px 0 13px}.legal-table th,.legal-table td{font-size:10.5px;padding:9px}.legal-table td:first-child{font-weight:500}
 .language-picker select{border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--ink);font-size:10px;font-weight:650;padding:6px 5px;letter-spacing:.5px}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+/* Swiss official-municipality marker */
+.ch{background:#9b3444}

@@ -119,7 +119,7 @@ export class RadiusMap {
       if (this.hits.length >= 3000) break;
       const selected = marker.id === this.selectedId;
       ctx.beginPath(); ctx.arc(xy.x, xy.y, selected ? 7 : 5, 0, Math.PI * 2);
-      ctx.fillStyle = marker.country === 'FR' ? '#bb643e' : '#207d6a'; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = marker.country === 'FR' ? '#bb643e' : marker.country === 'CH' ? '#9b3444' : '#207d6a'; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
       this.hits.push({ ...xy, marker });
       if (labels.length >= 32 || marker.distanceKm < 0.03) continue;
       ctx.font = '12px system-ui, sans-serif'; const width = ctx.measureText(marker.name).width + 10;

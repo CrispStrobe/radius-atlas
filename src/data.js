@@ -22,18 +22,24 @@ export function indexPlaces(records) {
   const groups = new Map();
   for (const r of records) {
     // Preserve accents and punctuation in identity: search normalization must not merge distinct places.
-    const key = JSON.stringify([r.country, ...r.adminCodes, r.place.normalize('NFC').trim().toLocaleLowerCase('de')]);
-    if (!groups.has(key)) groups.set(key, { id: key, name: r.place, country: r.country,
+    const isMunicipality = r.country === 'CH' && r.municipalityId;
+    const key = isMunicipality ? JSON.stringify(['CH', 'municipality', r.municipalityId]) : JSON.stringify([r.country, ...r.adminCodes, r.place.normalize('NFC').trim().toLocaleLowerCase('de')]);
+    if (!groups.has(key)) groups.set(key, { id: key, name: isMunicipality ? r.municipality : r.place, country: r.country,
       adminArea1: r.adminArea1, adminArea2: r.adminArea2, adminArea3: r.adminArea3,
-      adminCodes: r.adminCodes, kind: 'postal_locality', records: [] });
+      adminCodes: r.adminCodes, municipalityId: r.municipalityId ?? null, kind: isMunicipality ? 'municipality' : 'postal_locality', records: [] });
     groups.get(key).records.push(r);
   }
-  return [...groups.values()].map(group => ({ ...group, ...referencePoint(group.records),
+  return [...groups.values()].map(group => ({ ...group, ...(group.kind === 'municipality' ? weightedReferencePoint(group.records) : referencePoint(group.records)),
     postalCodes: [...new Set(group.records.map(r => r.postalCode))].sort(),
-    searchName: normalize(group.name), searchText: normalize([group.name, group.country, group.adminArea1, group.adminArea3, ...group.records.map(r => r.postalCode)].join(' '))
+    searchName: normalize(group.name), searchText: normalize([group.name, group.country, group.adminArea1, group.adminArea3, ...group.records.flatMap(r => [r.place, r.postalCode])].join(' '))
   })).sort((a, b) => a.name.localeCompare(b.name, 'de') || a.id.localeCompare(b.id));
 }
-export function searchPlaces(places, input, countries = ['DE', 'FR'], limit = 10) {
+function weightedReferencePoint(records) {
+  let x = 0, y = 0, z = 0, total = 0;
+  for (const r of records) { const w = r.addressShare || 1, lat = r.latitude * Math.PI / 180, lon = r.longitude * Math.PI / 180; x += Math.cos(lat) * Math.cos(lon) * w; y += Math.cos(lat) * Math.sin(lon) * w; z += Math.sin(lat) * w; total += w; }
+  return { latitude: Math.atan2(z / total, Math.hypot(x / total, y / total)) * 180 / Math.PI, longitude: Math.atan2(y / total, x / total) * 180 / Math.PI };
+}
+export function searchPlaces(places, input, countries = ['DE', 'FR', 'CH'], limit = 10) {
   const query = normalize(input);
   if (!query) return [];
   const tokens = query.split(' ');

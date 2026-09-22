@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { deflateRawSync } from 'node:zlib';
 import { unzipEntry, crc32 } from '../scripts/zip.mjs';
 import { parseGeoNames, makeDataset } from '../scripts/import-geonames.mjs';
+import { parseSwisstopo } from '../scripts/import-swisstopo.mjs';
 function zipFile(name,text,method=8){
  const filename=Buffer.from(name),raw=Buffer.from(text),body=method===8?deflateRawSync(raw):raw;
  const local=Buffer.alloc(30);local.writeUInt32LE(0x04034b50);local.writeUInt16LE(20,4);local.writeUInt16LE(method,8);local.writeUInt32LE(crc32(raw),14);local.writeUInt32LE(body.length,18);local.writeUInt32LE(raw.length,22);local.writeUInt16LE(filename.length,26);
@@ -38,4 +39,9 @@ test('country-file dataset retains source, modification and retrieval metadata',
 });
 test('stable record IDs do not depend on input order',()=>{const second=line.replace('01067','01069');
  const a=parseGeoNames(line+'\n'+second,'DE'),b=parseGeoNames(second+'\n'+line,'DE');assert.equal(a.records[0].id,b.records[1].id);
+});
+test('official Swiss CSV preserves four-digit postcodes and BFS municipality identity',()=>{
+ const csv='Ortschaftsname;PLZ4;Zusatzziffer;ZIP_ID;Gemeindename;BFS-Nr;Kantonskürzel;Adressenanteil;E;N;Sprache;Validity\nBern;3000;00;1;Bern;351;BE;75 %;7.4474;46.948;de;2024-01-01\n';
+ const parsed=parseSwisstopo(csv); assert.equal(parsed.records.length,1); assert.equal(parsed.records[0].postalCode,'3000');
+ assert.equal(parsed.records[0].municipality,'Bern'); assert.equal(parsed.records[0].municipalityId,'351'); assert.equal(parsed.records[0].addressShare,75);
 });

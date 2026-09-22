@@ -43,7 +43,7 @@ function applyQuery(fit = true) {
     $('map-info').textContent = `${query.radiusKm} km · ${query.countries.join(' + ')} · ${t(query.mode === 'places' ? 'place reference points' : 'postal points')}`;
     $('map-popup').hidden = true;
     $('rule-help').textContent = query.mode === 'places'
-      ? t('Select each postal locality by its derived reference point, then include every postal record assigned to that locality.')
+      ? t('Select Swiss municipalities and other postal localities by their derived reference point, then include every assigned postal record.')
       : t('Select only individual postal-record coordinates inside the radius. This is not a postal-area boundary intersection.');
     state.map.setData(query, state.answer, state.places, fit);
     $('result-filter').value = ''; renderTable();
@@ -132,7 +132,7 @@ async function init() {
         $('map').classList.remove('picking'); $('pick-center').setAttribute('aria-pressed', 'false'); $('pick-center').textContent = t('⊕ Set center on map'); applyQuery(false);
       }
     });
-    $('dataset-title').textContent = `GeoNames · ${dataset.meta.countries.join(' + ')}`;
+    $('dataset-title').textContent = `${dataset.meta.source} · ${dataset.meta.countries.join(' + ')}`;
     $('dataset-meta').textContent = t('{count} records · {detail}', { count: number(dataset.records.length), detail: t('retrieved {date}', { date: dataset.meta.retrievedAt?.slice(0, 10) || t('date not specified') }) });
     $('metadata').textContent = JSON.stringify(dataset.meta, null, 2);
     $('build-version').textContent = build.version || 'unknown';
@@ -182,7 +182,7 @@ async function init() {
 $('query-form').addEventListener('submit', e => { e.preventDefault(); applyQuery(); });
 $('radius-slider').addEventListener('input', e => { $('radius').value = e.target.value; });
 $('radius').addEventListener('input', e => { $('radius-slider').value = Math.min(150, Number(e.target.value)); });
-$('mode').addEventListener('change', () => { $('rule-help').textContent = t($('mode').value === 'places' ? 'All known PLZ of a selected postal locality are returned; some individual postal points can be outside the radius.' : 'Only individual postal coordinates within the radius are returned. No area-boundary intersection is performed.'); });
+$('mode').addEventListener('change', () => { $('rule-help').textContent = t($('mode').value === 'places' ? 'All known postcodes of a selected Swiss municipality or postal locality are returned; some individual postal points can be outside the radius.' : 'Only individual postal coordinates within the radius are returned. No area-boundary intersection is performed.'); });
 $('language').addEventListener('change', e => {
   setLocale(e.target.value); location.reload();
 });

@@ -11,6 +11,12 @@ fetched README. Country snapshots are hashed with SHA-256 and retain HTTP
 Last-Modified where available. Retrieval date is not a claim that every underlying
 record was updated that day.
 
+## swisstopo official locality and postcode directory
+Provider: Federal Office of Topography swisstopo. Terms: Swiss federal open-geodata
+terms. Source: https://data.geo.admin.ch/ch.swisstopo-vd.ortschaftenverzeichnis_plz/
+Attribution: © swisstopo. Radius Atlas converts the CSV and derives weighted
+municipality reference points; it does not claim those points are official centres.
+
 ## OpenStreetMap basemap (external, optional)
 Map attribution: © OpenStreetMap contributors.
 Copyright and licensing: https://www.openstreetmap.org/copyright

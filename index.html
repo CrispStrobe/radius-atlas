@@ -30,16 +30,16 @@
         <div class="radius-heading"><label for="radius" class="field-label">Search radius</label><div class="radius-number"><input id="radius" type="number" min="0" max="500" step="0.1" value="30" aria-label="Radius in kilometres"><span>km</span></div></div>
         <input id="radius-slider" type="range" min="0" max="150" step="1" value="30" aria-label="Radius slider, 0 to 150 km">
         <div class="range-captions"><span>0 km</span><span>150 km · type up to 500</span></div>
-        <fieldset class="countries"><legend class="field-label">Include results from</legend><label><input type="checkbox" name="country" value="DE" checked> <span class="country-flag">DE</span> Germany</label><label><input type="checkbox" name="country" value="FR"> <span class="country-flag">FR</span> France</label></fieldset>
+        <fieldset class="countries"><legend class="field-label">Include results from</legend><label><input type="checkbox" name="country" value="DE" checked> <span class="country-flag">DE</span> Germany</label><label><input type="checkbox" name="country" value="FR"> <span class="country-flag">FR</span> France</label><label><input type="checkbox" name="country" value="CH"> <span class="country-flag">CH</span> Switzerland</label></fieldset>
         <label for="mode" class="field-label">Selection rule</label>
         <select id="mode"><option value="places">Places → all their known PLZ</option><option value="postal-points">Postal points → only inside radius</option></select>
-        <p class="field-help" id="rule-help">Select each postal locality by its derived reference point, then include every postal record assigned to that locality.</p>
+        <p class="field-help" id="rule-help">Select Swiss municipalities and other postal localities by their derived reference point, then include every assigned postal record.</p>
         <button id="run-query" class="primary" type="submit" disabled>Explore this radius <span aria-hidden="true">→</span></button>
       </form>
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
       <div class="sidebar-divider"></div>
       <details class="query-shortcut"><summary>Or write a simple query <span>↗</span></summary><label class="sr-only" for="text-query">Simple English, German or French radius query</label><textarea id="text-query" rows="3" placeholder="Tous les codes postaux dans un rayon de 30 km autour de Kehl"></textarea><button id="parse-query" class="secondary">Use this query</button><p class="field-help">English, German or French radius shortcuts. Uses the countries and rule above; not a general AI search.</p></details>
-      <div class="method-note"><span class="note-icon">i</span><p><strong>Distance, not driving time.</strong><br>All distances are approximate straight-line measurements. Postal localities are not verified political municipalities.</p></div>
+      <div class="method-note"><span class="note-icon">i</span><p><strong>Distance, not driving time.</strong><br>Swiss records use official BFS municipalities; German and French records remain postal localities.</p></div>
       <div class="dataset-card"><span class="eyebrow">DATA SNAPSHOT</span><strong id="dataset-title">Loading…</strong><span id="dataset-meta"></span><button id="data-button" class="text-button">Source, coverage &amp; license ↗</button></div>
     </aside>
     <section class="main-pane" aria-label="Map and results">
@@ -51,7 +51,7 @@
         <div class="map-controls"><button id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button><button id="zoom-out" title="Zoom out" aria-label="Zoom out">−</button><button id="fit-map" title="Fit query area" aria-label="Fit query area">⤢</button></div>
         <button id="pick-center" class="pick-center" aria-pressed="false">⊕ Set center on map</button>
         <div id="map-popup" class="map-popup" hidden><button id="close-popup" aria-label="Close place details">×</button><strong id="popup-name"></strong><p id="popup-codes"></p><small id="popup-distance"></small></div>
-        <div class="map-legend"><span><i class="legend-dot de"></i>Germany</span><span><i class="legend-dot fr"></i>France</span><span><i class="legend-dot origin"></i>Origin</span></div>
+        <div class="map-legend"><span><i class="legend-dot de"></i>Germany</span><span><i class="legend-dot fr"></i>France</span><span><i class="legend-dot ch"></i>Switzerland</span><span><i class="legend-dot origin"></i>Origin</span></div>
         <div class="map-attribution"><a id="tile-attribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
       </div>
       <div class="map-caption"><span id="basemap-status">Basemap loads directly from OpenStreetMap</span><label><input id="tiles-toggle" type="checkbox" checked> Street basemap</label></div>
@@ -81,8 +81,8 @@
     <address><strong>Christian Ströbele</strong><br>Nikolausstr. 5<br>70190 Stuttgart<br>Deutschland / Germany</address>
     <h3>Contact</h3>
     <p><a href="mailto:postmaster@crispstro.be">postmaster@crispstro.be</a><br><a href="tel:+4917664218601">+49 176 6421 8601</a></p>
-    <h3>Selection, not administrative boundaries</h3>
-    <p>This version works with postal localities. Places are grouped by country, administrative fields and exact locality name. Their reference point is a spherical mean of distinct postal coordinates. It is neither an official town center nor a municipal centroid.</p>
+    <h3>Reference-point selection, not boundary intersection</h3>
+    <p>Swiss records are grouped into political municipalities using the official BFS municipality identifier supplied by swisstopo. Their derived reference point is an address-share-weighted spherical mean of official postal-locality coordinates; it is not an official centre or boundary centroid. German and French records remain GeoNames postal localities grouped by administrative fields and exact name.</p>
     <p>“Places → all their known PLZ” selects those reference points and then returns the selected localities’ full known postal records. Some returned postal coordinates can therefore lie outside the circle. “Postal points” filters each postal coordinate directly.</p>
     <h3>Data and provenance</h3>
     <pre id="metadata"></pre>
@@ -94,14 +94,14 @@
     <p>This software and its results are provided “as is”, without warranty of any kind, express or implied, including accuracy, completeness, timeliness, merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors be liable for claims, damages or other liability arising from the software, data, results or their use.</p>
     <p>Do not treat postal points as delivery-area boundaries, official municipal centres or authoritative proof that an address lies inside a jurisdiction. Verify consequential decisions against an appropriate official source.</p>
     <h3>Licences</h3>
-    <p>Original application code, tests and tooling are available under the MIT License. Original documentation is CC BY 4.0. Imported GeoNames postal data remains CC BY 4.0 under its upstream notice; conversion, validation, deduplication, locality reference points and distances are modifications made by Radius Atlas.</p>
+    <p>Original application code, tests and tooling are available under the MIT License. Original documentation is CC BY 4.0. GeoNames data remains CC BY 4.0. Swiss data remains under the separate Swiss federal open-geodata terms and is attributed © swisstopo; it is not relicensed as Creative Commons.</p>
     <p><a href="./LICENSE" target="_blank" rel="noopener">MIT License</a> · <a href="./LICENSE-DATA.md" target="_blank" rel="noopener">Data and documentation licences</a> · <a href="./THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener">Third-party notices</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p>
     <h3>Third-party services and data</h3>
-    <table class="legal-table"><thead><tr><th>Component</th><th>Terms</th></tr></thead><tbody><tr><td><a href="https://www.geonames.org/" target="_blank" rel="noopener">GeoNames postal data</a></td><td>CC BY 4.0; upstream notice retained</td></tr><tr><td><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap basemap</a></td><td>External optional service; ODbL attribution and <a href="https://operations.osmfoundation.org/policies/tiles/" target="_blank" rel="noopener">tile policy</a></td></tr></tbody></table>
+    <table class="legal-table"><thead><tr><th>Component</th><th>Terms</th></tr></thead><tbody><tr><td><a href="https://www.geonames.org/" target="_blank" rel="noopener">GeoNames postal data</a></td><td>CC BY 4.0; upstream notice retained</td></tr><tr><td><a href="https://data.geo.admin.ch/ch.swisstopo-vd.ortschaftenverzeichnis_plz/" target="_blank" rel="noopener">Swiss official locality and postcode directory</a></td><td>Swiss federal open-geodata terms; © swisstopo</td></tr><tr><td><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap basemap</a></td><td>External optional service; ODbL attribution and <a href="https://operations.osmfoundation.org/policies/tiles/" target="_blank" rel="noopener">tile policy</a></td></tr></tbody></table>
     <h3>Not affiliated</h3>
     <p>Radius Atlas is not affiliated with, endorsed by or operated by GeoNames, the OpenStreetMap Foundation, OpenStreetMap contributors, GitHub or Vercel. Names and trademarks belong to their respective owners.</p>
-    <h3>Need municipalities?</h3>
-    <p>Use official municipal identifiers, an explicit municipal reference point or boundary layer, and a municipality-to-PLZ crosswalk. This app does not infer an AGS from a GeoNames administrative field.</p>
+    <h3>Municipality coverage</h3>
+    <p>Switzerland has official municipality coverage and a municipality-to-postcode relationship. Germany and France do not yet: the app never infers a municipal identifier from a GeoNames administrative field.</p>
   </dialog>
   <noscript><p class="notice">This application requires JavaScript for local spatial queries. The dataset is available at <a href="./data/dataset.json">data/dataset.json</a>.</p></noscript>
 </body>
